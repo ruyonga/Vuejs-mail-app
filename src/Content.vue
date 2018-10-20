@@ -1,11 +1,11 @@
 <template>
     <aside class="lg-side">
             <div class="inbox-head">
-               
+                    <h3> {{currentView.title}}</h3>
             </div>
-             <h3> {{currentView.card-title}}</h3>
+        
                  <keep-alive>
-                        <component :is="currentView.tag"></component>
+                        <component :is="currentView.tag" :data="currentView.data"></component>
                 </keep-alive>
          </aside>
 </template>
@@ -20,11 +20,18 @@ import { eventBus} from './main'
 
 export default {
     
+    props: {
+        messages: {
+            type: Array,
+            required: true
+        }
+    },
     created(){
         eventBus.$on('changeView', (data)=>{
             let temp =[{
                 tag: data.tag, 
-                title: data.title
+                title: data.title,
+                data: data.data || {}
             }];
             this.history = temp.concat(this.history.splice(0));
         })
@@ -35,21 +42,29 @@ export default {
             history: [
                 {
                     tag: 'app-inbox',
-                    title: 'Inbox'
+                    title: 'Inbox',
+                    data: {
+                        messages: null
+                    }
                 }
             ]
         };
     },
     computed: {
         currentView() {
-            return this.history[0]
+            let current = this.history[0];
+            current.data.messages = this.messages;
+            return current;
+        },
+        previousView(){
+            return typeof this.history[1] !== 'undefined' ? this.history[1] : null;
         }
     },
     components: {
         'app-inbox': Inbox,
         'app-sent': Sent,
-        'app-Important': Important,
-        'app-Trash': Trash,
+        'app-important': Important,
+        'app-trash': Trash,
         'app-view-message': ViewMessage
 
     }
